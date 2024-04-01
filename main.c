@@ -8,10 +8,11 @@
 #define PADDLE_HEIGHT 75
 #define PADDLE_WIDTH  15
 
-#define BALL_SPEED 1
+#define BALL_SPEED 3
 
 
 bool isCursorOnScreen(int pos);
+int calculateGradient(Rectangle ball, Rectangle paddle);
 
 typedef enum {
   LEFT,
@@ -26,6 +27,9 @@ int main() {
   Rectangle p1 = {SCREEN_WIDTH - 30, 200, PADDLE_WIDTH, PADDLE_HEIGHT};
   Rectangle p2 = {15, 200, PADDLE_WIDTH, PADDLE_HEIGHT};
   Rectangle ball = {SCREEN_WIDTH / 2, SCREEN_HEIGHT / 2, 15, 15};
+
+  Rectangle top = {0, 0, SCREEN_WIDTH, 5};
+  Rectangle bottom = {0, SCREEN_HEIGHT - 5, SCREEN_WIDTH, 5};
   HideCursor();
   int gradient = 0;
   Direction dir = LEFT;
@@ -44,14 +48,24 @@ int main() {
       ball.x = ball.x - BALL_SPEED;
       break;
     }
+
+    if (CheckCollisionRecs(ball, top) || CheckCollisionRecs(ball, bottom)) {
+      gradient = gradient * -1;
+    }
+
     ball.y += gradient;
 
+    p2.y = ball.y;
+
     if (CheckCollisionRecs(ball, p1)) {
+      gradient = calculateGradient(ball, p1);
       dir = RIGHT;
     }
     if (CheckCollisionRecs(ball, p2)) {
+      gradient = calculateGradient(ball, p2);
       dir = LEFT;
     }
+
 
     BeginDrawing();
         DrawRectangleLinesEx(border, 5.0, WHITE);
@@ -61,6 +75,14 @@ int main() {
     ClearBackground(BLACK);
     EndDrawing();
   }
+}
+
+int calculateGradient(Rectangle ball, Rectangle paddle) {
+  Rectangle collision = GetCollisionRec(ball, paddle);
+  int collisionCentre = collision.y + (collision.height / 2);
+  int paddleCentre = paddle.y + (paddle.height / 2);
+  int gradient = (paddleCentre - collisionCentre);
+  return (gradient / 10) * -1;
 }
 
 bool isCursorOnScreen(int pos) {
