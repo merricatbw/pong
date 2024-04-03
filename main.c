@@ -34,12 +34,15 @@ int main() {
   Rectangle p1Gate = {SCREEN_WIDTH - 5, 0, 5, SCREEN_HEIGHT};
   Rectangle p2Gate = {0, 0, 5, SCREEN_HEIGHT};
 
+
   HideCursor();
 
   int gradient = 0;
   Direction dir = LEFT;
   
   int scores[] = {0, 0}; //player 1 score [0], player 2 score[1]
+  char p1Score[3];
+  char p2Score[3];
   
   while(!WindowShouldClose()) {
     int cursorY = GetMouseY();
@@ -79,11 +82,16 @@ int main() {
 
     if (CheckCollisionRecs(ball, p2Gate)) {
       resetBall(&ball);
-      scores[2] += 2
+      scores[0] += 1;
     }
+
+    sprintf(p1Score, "%d", scores[0]);
+    sprintf(p2Score, "%d", scores[1]);
 
 
     BeginDrawing();
+        DrawText(p1Score, (SCREEN_WIDTH / 2) + 50, 10, 40, WHITE);
+        DrawText(p2Score, (SCREEN_WIDTH / 2) - 50, 10, 40, WHITE);
         DrawRectangleLinesEx(border, 5.0, WHITE);
         DrawRectangleRec(p1, WHITE);
         DrawRectangleRec(p2, WHITE);
