@@ -1,19 +1,24 @@
 #include "raylib.h"
+
 #include <stdbool.h>
 #include <stdio.h>
+#include <math.h>
 
 #define SCREEN_WIDTH  500
 #define SCREEN_HEIGHT 500
 
-#define PADDLE_HEIGHT 75
+#define PADDLE_HEIGHT 80
 #define PADDLE_WIDTH  15
 
-#define BALL_SPEED 5
+#define BALL_SPEED 1
+#define PADDLE_SPEED 5
 
 //Function declerations
 bool isCursorOnScreen(int pos);
 int calculateGradient(Rectangle ball, Rectangle paddle);
 void resetBall(Rectangle* ball);
+int aiPaddlePrediction(int, int, int);
+
 
 typedef enum {
   LEFT,
@@ -64,7 +69,14 @@ int main() {
 
     ball.y += gradient;
 
-    p2.y = ball.y;
+    int prediction = aiPaddlePrediction(ball.x, ball.y, gradient);
+    if(p2.y + (PADDLE_HEIGHT / 2) != prediction) {
+      if (p2.y + (PADDLE_HEIGHT / 2) < prediction) {
+	p2.y += PADDLE_SPEED;
+      } else {
+	p2.y -= PADDLE_SPEED;
+      }
+    }
 
     if (CheckCollisionRecs(ball, p1)) {
       gradient = calculateGradient(ball, p1);
@@ -89,6 +101,7 @@ int main() {
     sprintf(p2Score, "%d", scores[1]);
 
 
+
     BeginDrawing();
         DrawText(p1Score, (SCREEN_WIDTH / 2) + 50, 10, 40, WHITE);
         DrawText(p2Score, (SCREEN_WIDTH / 2) - 50, 10, 40, WHITE);
@@ -101,14 +114,13 @@ int main() {
   }
 }
 
-//TODO: this needs to be better
-//idea convert to float div by ten and round to nearest dp
 int calculateGradient(Rectangle ball, Rectangle paddle) {
   Rectangle collision = GetCollisionRec(ball, paddle);
-  int collisionCentre = collision.y + (collision.height / 2);
-  int paddleCentre = paddle.y + (paddle.height / 2);
+  int collisionCentre = (float) collision.y + ((float) collision.height / 2.0);
+  int paddleCentre = (float) paddle.y + ((float) paddle.height / 2.0);
+  
   int gradient = (paddleCentre - collisionCentre);
-  return (gradient / 10) * -1;
+  return roundf((float) gradient / 10.0) * -1;
 }
 
 bool isCursorOnScreen(int pos) {
@@ -121,4 +133,15 @@ bool isCursorOnScreen(int pos) {
 void resetBall(Rectangle* ball) {
   ball->x = SCREEN_WIDTH / 2;
   ball->y = SCREEN_HEIGHT / 2;
+}
+
+int aiPaddlePrediction(int x, int y, int gradient) {
+  int intersect = (x * gradient) - y;
+  int prediction = ((gradient * 15) + intersect) * -1;
+  if (prediction > SCREEN_HEIGHT) {
+    return SCREEN_HEIGHT / 2;
+      } else if (prediction < 0) {
+    return SCREEN_HEIGHT / 2;
+  }
+  return prediction;
 }
